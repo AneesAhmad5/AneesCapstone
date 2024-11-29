@@ -16,6 +16,7 @@ let backgroundGreen = 0;
 let backgroundBlue = 0;
 
 
+
 function preload(){ 
   //loading fonts for the title
   titlefont = loadFont("assets/GAMEDAY.ttf");
@@ -45,20 +46,24 @@ function menu(){
   play_button();
 }
 
+let playcolour = (69, 140, 81); //play text colour
+let buttonColour = (40, 65, 158); //play button colour
 //play button
-function play_button(){
-  let buttonColour = color(100,20,20);
+function play_button(){ 
   fill(buttonColour);
   rectMode(CENTER);
   rect(windowWidth/2, windowHeight/2+200, 800, 300);
-  fill(0);
+  fill(playcolour);
   textSize(100);
   text("PLAY", windowWidth/2, windowHeight/2+225);
-  if(mouseY > windowHeight/2+350 && mouseY < windowHeight/2+50){
-    // console.log("monkey");
-    buttonColour = color(0,20,20);
+  if(mouseY < windowHeight/2+350 && mouseY > windowHeight/2+50 && mouseX > windowWidth/2-400 && mouseX < windowWidth/2+400){ //mouse hover function - changes colour
+    print("monkey");
+    buttonColour = color(28, 53, 97);
+    playcolour = color(36, 74, 43);
   }
   else{
-    buttonColour = color(100,20,20);
+    buttonColour = color(40, 65, 158);
+    playcolour = color(69, 140, 81);
   }
 }
+
