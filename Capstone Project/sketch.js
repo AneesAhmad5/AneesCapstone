@@ -12,8 +12,9 @@ let countdown = false;
 let game_start = false;
 let normal_mode = false;
 
-
-
+//creating two characters
+let player1;
+let player2;
 
 
 //setting a colour for the background that will change.
@@ -33,6 +34,14 @@ function preload(){
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
+  //setting cannon positions. Must be done before creating new cannons and has to be within a system. 
+  cannonX = windowWidth * 0.25;
+  cannonX2 = windowWidth * 0.75;
+  cannonY = windowHeight *0.75;
+  cannonY2 = windowHeight * 0.75;
+  player1 = new Cannon(cannonX, cannonY, mouseX);
+
+  player2 = new Cannon(cannonX2, cannonY2, mouseX);
 }
 
 function draw() {
@@ -154,7 +163,8 @@ function fadeIn(r, g, b){
 function game_background(){
   background(backgroundRed, backgroundGreen, backgroundBlue); //setting the background.
   createTerrain();
-  
+  player1.display();
+  player2.display();
 }
 
 //TERRAIN GENERATING
@@ -166,6 +176,7 @@ function createTerrain(){
   for(let x = 0; x < width; x += terrainUnitWidth){
     let y = noise(time) * height;
     noStroke();
+    fill(backgroundRed*0.5, backgroundGreen *0.5, backgroundBlue*0.5);
     rect(x, height, terrainUnitWidth, -1*y);
     time += interval;  
   }
@@ -173,11 +184,12 @@ function createTerrain(){
 
 //CANNON
 //player 1
-let cannonX = (windowWidth * 0.25);
-let cannonY = 500;
+let cannonX;
+let cannonY;
 //player2
-let cannonX2 = (windowWidth * 0.75);
-let cannonY2 = 500;
+let cannonX2;
+let cannonY2;
+
 
 class Cannon{
   constructor(x,y,direction){
@@ -186,10 +198,18 @@ class Cannon{
     this.direction = direction;
   }
   display(){
-    rectMode(CENTER);
     stroke(0);
     fill(122, 63, 0);
-
+    circle(this.x, this.y, 50);
+    rectMode(CENTER);
+    fill(99, 95, 91);
+    if(this.x > windowWidth/2){
+      rect(this.x-25, this.y, 70, 20);
+    }
+    else{
+      rect(this.x+25, this.y, 70, 20);
+    }
+    rect(this.x, this.y+25, 50, 20);
   }
 
 } 
