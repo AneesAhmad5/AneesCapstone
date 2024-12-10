@@ -37,8 +37,8 @@ function setup() {
   //setting cannon positions. Must be done before creating new cannons and has to be within a system. 
   cannonX = windowWidth * 0.25;
   cannonX2 = windowWidth * 0.75;
-  cannonY = windowHeight * 0.75;
-  cannonY2 = windowHeight * 0.75;
+  cannonY = windowHeight * 0.4;
+  cannonY2 = windowHeight * 0.4;
   player1 = new Cannon(cannonX, cannonY, 0);
   angleMode(DEGREES);
   player2 = new Cannon(cannonX2, cannonY2, 0);
@@ -51,7 +51,7 @@ function draw() {
   //transition
   else if (transitionBlack === true) {
     fadeOut();
-    print(backgroundRed, backgroundGreen, backgroundBlue);
+
     if (backgroundRed === 0 && backgroundGreen === 0 && backgroundBlue === 0) { //if the colour is black, stop transitioning.
       transitionBlack = false;
       transitionColour = true;
@@ -59,7 +59,7 @@ function draw() {
   }
   else if (transitionColour === true) { //transitioning to the colour i need
     fadeIn(200, 196, 255);
-    print(backgroundRed, backgroundGreen, backgroundBlue);
+
   }
   //game page
   else if (game_start === true) {
@@ -68,16 +68,32 @@ function draw() {
   else { //if nothing is received, just make a black screen. 
     background(0);
   }
-  if (keyIsDown(RIGHT_ARROW) === true) {
+
+  //key pressing functions.
+  //player 1
+  if (keyIsDown(83) === true && player1.direction < 10) {
+    player1.direction += 5;
+  }
+  if (keyIsDown(87) === true && player1.direction > -190) {
+    player1.direction -= 5;
+  }
+
+  //player 2
+  if (keyIsDown(UP_ARROW) === true && player2.direction < 190) {
     player2.direction += 5;
   }
-  if(keyIsDown(LEFT_ARROW) === true){
+  if (keyIsDown(DOWN_ARROW) === true && player2.direction > - 10) {
     player2.direction -= 5;
   }
+
+  //physics
+  //checking to see if the cannon touches the ground
+  for (let i in terrain_heights) {
+    if (int(player1.y * -1 === i)) {
+      print('touching the ground');
+    }
+  }
 }
-
-
-
 
 
 
@@ -172,7 +188,7 @@ function game_background() {
   player2.display();
 }
 
-
+let terrain_heights = [];
 
 //TERRAIN GENERATING
 //setting variables for the terrain 
@@ -185,6 +201,7 @@ function createTerrain() {
     noStroke();
     fill(backgroundRed * 0.5, backgroundGreen * 0.5, backgroundBlue * 0.5);
     rect(x, height, terrainUnitWidth, -1 * y);
+    terrain_heights.push(int(-1 * y));
     time += interval;
   }
 }
@@ -203,6 +220,8 @@ class Cannon {
     this.x = x;
     this.y = y;
     this.direction = direction;
+    this.drop_speed = 5;
+    this.touching_ground = false;
   }
   display() {
     noStroke();
@@ -236,8 +255,7 @@ class Cannon {
     //cannon base
     fill(122, 63, 0);
     rect(this.x, this.y + 25, 70, 20);
-
-
+    this.y += 0.5;
   }
 
 }
