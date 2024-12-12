@@ -37,14 +37,17 @@ function setup() {
   //setting cannon positions. Must be done before creating new cannons and has to be within a system. 
   cannonX = windowWidth * 0.25;
   cannonX2 = windowWidth * 0.75;
-  cannonY = windowHeight * 0.4;
-  cannonY2 = windowHeight * 0.4;
+  cannonY = int(windowHeight * 0.4);
+  cannonY2 = int(windowHeight * 0.4);
   player1 = new Cannon(cannonX, cannonY, 0);
   angleMode(DEGREES);
   player2 = new Cannon(cannonX2, cannonY2, 0);
+
+  createTerrain();
 }
 
 function draw() {
+
   if (menu_screen === true) { //checking for menu broadcast
     menu();
   }
@@ -63,6 +66,7 @@ function draw() {
   }
   //game page
   else if (game_start === true) {
+
     game_background();
   }
   else { //if nothing is received, just make a black screen. 
@@ -88,11 +92,16 @@ function draw() {
 
   //physics
   //checking to see if the cannon touches the ground
-  for (let i in terrain_heights) {
-    if (int(player1.y * -1 === i)) {
-      print('touching the ground');
+  for (let i of terrain_heights) {
+    print(player1.y , i);
+    if (player1.y === i) {
+      print(i);
+      player1.drop = false;
     }
+
   }
+
+  renderTerrain();
 }
 
 
@@ -139,7 +148,6 @@ function mouseClicked() {
     menu_screen = false;
     transitionBlack = true;
     game_start = true;
-    print(menu_screen);
   }
 }
 
@@ -183,7 +191,7 @@ function fadeIn(r, g, b) {
 //        GAME SETUP        \\
 function game_background() {
   background(backgroundRed, backgroundGreen, backgroundBlue); //setting the background.
-  createTerrain();
+
   player1.display();
   player2.display();
 }
@@ -198,11 +206,32 @@ function createTerrain() {
   let time = 0;
   for (let x = 0; x < width; x += terrainUnitWidth) {
     let y = noise(time) * height;
+
+    terrain_heights.push(windowHeight - int(y/2));
+    time += interval;
+  }
+}
+
+function renderTerrain() {
+  let x = 0;
+  for (let h of terrain_heights) {
     noStroke();
     fill(backgroundRed * 0.5, backgroundGreen * 0.5, backgroundBlue * 0.5);
-    rect(x, height, terrainUnitWidth, -1 * y);
-    terrain_heights.push(int(-1 * y));
-    time += interval;
+    rect(x, height, terrainUnitWidth, h);
+
+    x += terrainUnitWidth;
+  }
+}
+
+class TerrainUnit {
+  constructor(x, y, width, height){
+    this.x = x;
+    this.y = y;
+    this.width = width;
+  }
+
+  display(){
+    rect(x, y, terrainUnitWidth, height);
   }
 }
 
@@ -221,6 +250,7 @@ class Cannon {
     this.y = y;
     this.direction = direction;
     this.drop_speed = 5;
+    this.drop = true;
     this.touching_ground = false;
   }
   display() {
@@ -255,7 +285,9 @@ class Cannon {
     //cannon base
     fill(122, 63, 0);
     rect(this.x, this.y + 25, 70, 20);
-    this.y += 0.5;
+    if (this.drop === true) {
+      this.y += 1 ;
+    }
   }
 
 }
