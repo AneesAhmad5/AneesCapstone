@@ -37,8 +37,8 @@ function setup() {
   //setting cannon positions. Must be done before creating new cannons and has to be within a system. 
   cannonX = windowWidth * 0.25;
   cannonX2 = windowWidth * 0.75;
-  cannonY = int(windowHeight * 0.4);
-  cannonY2 = int(windowHeight * 0.4);
+  cannonY = 0;        // int(windowHeight * 0.4);
+  cannonY2 = 0;       //int(windowHeight * 0.4);
   player1 = new Cannon(cannonX, cannonY, 0);
   angleMode(DEGREES);
   player2 = new Cannon(cannonX2, cannonY2, 0);
@@ -93,12 +93,17 @@ function draw() {
   //physics
   //checking to see if the cannon touches the ground
   for (let i of terrain_heights) {
-    print(player1.y , i);
-    if (player1.y === i) {
+    if (int(player1.y + 35) === height - i/2) {
       print(i);
       player1.drop = false;
     }
+  }
 
+  for (let i of terrain_heights) {
+    if (int(player2.y + 35) === height - i/2) {
+      print(i);
+      player2.drop = false;
+    }
   }
 
   renderTerrain();
@@ -207,7 +212,7 @@ function createTerrain() {
   for (let x = 0; x < width; x += terrainUnitWidth) {
     let y = noise(time) * height;
 
-    terrain_heights.push(windowHeight - int(y/2));
+    terrain_heights.push(int(y));
     time += interval;
   }
 }
@@ -217,23 +222,24 @@ function renderTerrain() {
   for (let h of terrain_heights) {
     noStroke();
     fill(backgroundRed * 0.5, backgroundGreen * 0.5, backgroundBlue * 0.5);
+    rectMode(CENTER);
     rect(x, height, terrainUnitWidth, h);
 
     x += terrainUnitWidth;
   }
 }
 
-class TerrainUnit {
-  constructor(x, y, width, height){
-    this.x = x;
-    this.y = y;
-    this.width = width;
-  }
+// class TerrainUnit {
+//   constructor(x, y, width, height){
+//     this.x = x;
+//     this.y = y;
+//     this.width = width;
+//   }
 
-  display(){
-    rect(x, y, terrainUnitWidth, height);
-  }
-}
+//   display(){
+//     rect(x, y, terrainUnitWidth, height);
+//   }
+// }
 
 //CANNON
 //player 1
@@ -258,6 +264,7 @@ class Cannon {
     fill(31, 26, 26);
     //cannon barrel
     //player 2
+    rectMode(CENTER);
     if (this.x > windowWidth / 2) {
       //rotating the canon
       push();
@@ -286,7 +293,9 @@ class Cannon {
     fill(122, 63, 0);
     rect(this.x, this.y + 25, 70, 20);
     if (this.drop === true) {
-      this.y += 1 ;
+      this.y += this.drop_speed ;
+      this.drop_speed = this.drop_speed*1.01;
+      print(this.drop_speed);
     }
   }
 
