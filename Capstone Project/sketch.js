@@ -39,9 +39,9 @@ function setup() {
   cannonX2 = windowWidth * 0.75;
   cannonY = 0;        // int(windowHeight * 0.4);
   cannonY2 = 0;       //int(windowHeight * 0.4);
-  player1 = new Cannon(cannonX, cannonY, 0);
+  player1 = new Cannon(cannonX, cannonY, 0, windowWidth * 0.25, cannonY + 40);
   angleMode(DEGREES);
-  player2 = new Cannon(cannonX2, cannonY2, 0);
+  player2 = new Cannon(cannonX2, cannonY2, 0, windowWidth * 0.75, cannonY2 + 40);
 
   createTerrain();
 }
@@ -66,8 +66,8 @@ function draw() {
   }
   //game page
   else if (game_start === true) {
-
     game_background();
+    renderTerrain();
   }
   else { //if nothing is received, just make a black screen. 
     background(0);
@@ -93,20 +93,18 @@ function draw() {
   //physics
   //checking to see if the cannon touches the ground
   for (let i of terrain_heights) {
-    if (int(player1.y + 35) === height - i/2) {
+    if (int(player1.wheelY) === height - i / 2) {
       print(i);
       player1.drop = false;
     }
   }
 
   for (let i of terrain_heights) {
-    if (int(player2.y + 35) === height - i/2) {
+    if (int(player2.wheelY) === height - i / 2) {
       print(i);
       player2.drop = false;
     }
   }
-
-  renderTerrain();
 }
 
 
@@ -210,36 +208,43 @@ let interval = 0.01; //the difference in unit heights
 function createTerrain() {
   let time = 0;
   for (let x = 0; x < width; x += terrainUnitWidth) {
-    let y = noise(time) * height;
+    let h = noise(time) * height;
 
-    terrain_heights.push(int(y));
+    // terrain_heights.push(int(y));
+    terrain_heights.push(new TerrainUnit(x,h));
     time += interval;
   }
 }
 
 function renderTerrain() {
   let x = 0;
-  for (let h of terrain_heights) {
-    noStroke();
-    fill(backgroundRed * 0.5, backgroundGreen * 0.5, backgroundBlue * 0.5);
-    rectMode(CENTER);
-    rect(x, height, terrainUnitWidth, h);
-
-    x += terrainUnitWidth;
+  for (let u of terrain_heights) {
+    // noStroke();
+    // fill(backgroundRed * 0.5, backgroundGreen * 0.5, backgroundBlue * 0.5);
+    // rectMode(CENTER);
+    // rect(x, height, terrainUnitWidth, h);
+    u.display();
+    
   }
 }
 
-// class TerrainUnit {
-//   constructor(x, y, width, height){
-//     this.x = x;
-//     this.y = y;
-//     this.width = width;
-//   }
+class TerrainUnit {
+  constructor(x, h){
+    this.x = x;
+    this.y = height;
+    this.h = h;
+    this.top = height-h/2;
+    this.left = this.x-terrainUnitWidth/2;
+    this.right = this.x+terrainUnitWidth/2;
+  }
 
-//   display(){
-//     rect(x, y, terrainUnitWidth, height);
-//   }
-// }
+  display(){
+    noStroke();
+    fill(backgroundRed * 0.5, backgroundGreen * 0.5, backgroundBlue * 0.5);
+    rectMode(CENTER);
+    rect(this.x, this.y, terrainUnitWidth, this.h);
+  }
+}
 
 //CANNON
 //player 1
@@ -251,13 +256,17 @@ let cannonY2;
 
 
 class Cannon {
-  constructor(x, y, direction) {
+  constructor(x, y, direction, wheelX, wheelY) { //need to know where each wheel is and if they're touching the ground.
     this.x = x;
     this.y = y;
     this.direction = direction;
+    this.forcedown_y = 0;
     this.drop_speed = 5;
     this.drop = true;
     this.touching_ground = false;
+    this.wheelX = wheelX-25;
+    this.wheelX2 = wheelX+25;
+    this.wheelY = wheelY;
   }
   display() {
     noStroke();
@@ -287,14 +296,18 @@ class Cannon {
     rectMode(CENTER);
     //wheels
     fill(0);
-    circle(this.x - 25, this.y + 35, 20);
-    circle(this.x + 25, this.y + 35, 20);
+    circle(this.wheelX, this.wheelY, 20);
+    circle(this.wheelX2, this.wheelY, 20);
     //cannon base
     fill(122, 63, 0);
     rect(this.x, this.y + 25, 70, 20);
+    if (this.drop === false){
+      this.forcedown_y = 0;
+    }
     if (this.drop === true) {
-      this.y += this.drop_speed ;
-      this.drop_speed = this.drop_speed*1.01;
+      this.y += this.drop_speed;
+      this.wheelY += this.drop_speed;
+      this.forcedown_y = this.forcedown_y + this.drop_speed;
       print(this.drop_speed);
     }
   }

@@ -32,6 +32,7 @@ function draw() {
   car.update();
   car.check_gravity();
   car.draw();
+  print(car.gravity, car.forceY);
 }
 
 function keyDown() {
