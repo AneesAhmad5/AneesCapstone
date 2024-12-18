@@ -39,9 +39,9 @@ function setup() {
   cannonX2 = windowWidth * 0.75;
   cannonY = 0;        // int(windowHeight * 0.4);
   cannonY2 = 0;       //int(windowHeight * 0.4);
-  player1 = new Cannon(cannonX, cannonY, 0, windowWidth * 0.25, cannonY + 40);
+  player1 = new Cannon(cannonX, cannonY, 0);
   angleMode(DEGREES);
-  player2 = new Cannon(cannonX2, cannonY2, 0, windowWidth * 0.75, cannonY2 + 40);
+  player2 = new Cannon(cannonX2, cannonY2, 0);
 
   createTerrain();
 }
@@ -93,18 +93,16 @@ function draw() {
   //physics
   //checking to see if the cannon touches the ground
   for (let i of terrain_heights) {
-    if (int(player1.wheelY) === height - i / 2) {
-      print(i);
+    if (int(player1.cannonBase) >= int(i.top) && int(i.left) <= int(player1.x) && int(player1.x) <= int(i.right)) {
       player1.drop = false;
     }
+    // print(i.left, i.right);
+    // print(player1.x);
+    if (int(player2.cannonBase) >= int(i.top) && int(i.left) <= int(player2.x) && int(player2.x) <= int(i.right)) {
+      player2.drop = false;
+    } 
   }
 
-  for (let i of terrain_heights) {
-    if (int(player2.wheelY) === height - i / 2) {
-      print(i);
-      player2.drop = false;
-    }
-  }
 }
 
 
@@ -219,12 +217,7 @@ function createTerrain() {
 function renderTerrain() {
   let x = 0;
   for (let u of terrain_heights) {
-    // noStroke();
-    // fill(backgroundRed * 0.5, backgroundGreen * 0.5, backgroundBlue * 0.5);
-    // rectMode(CENTER);
-    // rect(x, height, terrainUnitWidth, h);
     u.display();
-    
   }
 }
 
@@ -256,17 +249,20 @@ let cannonY2;
 
 
 class Cannon {
-  constructor(x, y, direction, wheelX, wheelY) { //need to know where each wheel is and if they're touching the ground.
+  constructor(x, y, direction) { //need to know where each wheel is and if they're touching the ground.
     this.x = x;
     this.y = y;
     this.direction = direction;
     this.forcedown_y = 0;
-    this.drop_speed = 5;
+    this.drop_speed = 0.1;
     this.drop = true;
     this.touching_ground = false;
-    this.wheelX = wheelX-25;
-    this.wheelX2 = wheelX+25;
-    this.wheelY = wheelY;
+
+    //hitbox
+    this.cannonLeftSide;
+    this.cannonRightSide;
+    this.cannonTop;
+    this.cannonBase;
   }
   display() {
     noStroke();
@@ -294,22 +290,28 @@ class Cannon {
     //cannon head
     circle(this.x, this.y, 50);
     rectMode(CENTER);
-    //wheels
+    //wheels - optional
     fill(0);
-    circle(this.wheelX, this.wheelY, 20);
-    circle(this.wheelX2, this.wheelY, 20);
+    
     //cannon base
     fill(122, 63, 0);
     rect(this.x, this.y + 25, 70, 20);
+    //making it drop\\
     if (this.drop === false){
       this.forcedown_y = 0;
     }
     if (this.drop === true) {
-      this.y += this.drop_speed;
-      this.wheelY += this.drop_speed;
+      this.y += this.forcedown_y;
+      this.wheelY += this.forcedown_y;
       this.forcedown_y = this.forcedown_y + this.drop_speed;
-      print(this.drop_speed);
     }
+
+
+    //hitbox
+    this.cannonLeftSide = this.x-35;
+    this.cannonRightSide = this.x+35;
+    this.cannonTop = this.y - 25;
+    this.cannonBase = this.y + 35;
   }
 
 }
