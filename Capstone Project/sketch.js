@@ -23,7 +23,9 @@ let backgroundGreen = 10;
 let backgroundBlue = 10;
 let BlackScreen = false;
 
-
+//setting a array for either player
+player1Projectile = [];
+player2Projectile = [];
 
 // WEBSITE FUNCTIONS
 
@@ -90,6 +92,7 @@ function draw() {
     player2.direction -= 5;
   }
 
+
   //physics
   //checking to see if the cannon touches the ground
   for (let i of terrain_heights) {
@@ -105,7 +108,17 @@ function draw() {
 
 }
 
-
+//shooting
+function keyPressed(){
+  if(keyCode === 70){
+    player1Projectile.push(new Projectile(windowWidth/2-20, windowHeight/2, 60, 5, 1));
+    print("player1 shot");
+  }
+  if(keyCode === 16){
+    player2Projectile.push(new Projectile(windowWidth/2+20, windowHeight/2, 60, 5, 1));
+    print("player2 shot");
+  }
+}
 
 
 
@@ -195,6 +208,14 @@ function game_background() {
 
   player1.display();
   player2.display();
+
+  for(missles of player1Projectile){
+    missles.display();
+  }
+
+  for(missles of player2Projectile){
+    missles.display();
+  }
 }
 
 let terrain_heights = [];
@@ -317,7 +338,22 @@ class Cannon {
 }
 
 class Projectile {
-  constructor(x, y, direction, speed, type,) {
+  constructor(x, y, direction, speed, type) {
+    this.x = x;
+    this.y = y;
+    this.direction = direction;
+    this.speed = speed;
+    this.type = type;
+  }
 
+  display(){
+    if(this.type === 1){ //rocket type 1
+
+      fill(156, 156, 156); //gray
+      rect(this.x, this.y, 10, 20);
+
+      fill(173, 0, 0); //red
+      triangle(this.x-10, this.y-10, this.x, this.y-30, this.x+10, this.y-10);  
+    }
   }
 }
