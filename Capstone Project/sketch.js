@@ -93,6 +93,8 @@ function draw() {
   }
 
 
+
+
   //physics
   //checking to see if the cannon touches the ground
   for (let i of terrain_heights) {
@@ -110,12 +112,13 @@ function draw() {
 
 //shooting
 function keyPressed(){
-  if(keyCode === 70){
-    player1Projectile.push(new Projectile(windowWidth/2-20, windowHeight/2, 60, 5, 1));
+  if(keyCode === 70){ //"F" key
+    player1Projectile.push(new Projectile(player1.x, player1.y, player1.direction+90, 5, 1));
     print("player1 shot");
   }
-  if(keyCode === 16){
-    player2Projectile.push(new Projectile(windowWidth/2+20, windowHeight/2, 60, 5, 1));
+  if(keyCode === 76){ //"L" key
+    //                                                       the direction must have 90 added or subtracted because of the difference in starting positions.
+    player2Projectile.push(new Projectile(player2.x, player2.y, player2.direction-90, 5, 1)); //creates new projectile at the cannon position
     print("player2 shot");
   }
 }
@@ -206,15 +209,24 @@ function fadeIn(r, g, b) {
 function game_background() {
   background(backgroundRed, backgroundGreen, backgroundBlue); //setting the background.
 
-  player1.display();
-  player2.display();
 
   for(missles of player1Projectile){
-    missles.display();
+    missles.action();
   }
 
   for(missles of player2Projectile){
-    missles.display();
+    missles.action();
+  }
+
+  player1.display();
+  player2.display();
+ 
+  // deleting missles if they go out of range
+  for(let missles of player1Projectile){
+    if(int(missles.positiony) < int(0-player1.y)){
+      print("goodbye");
+      pop(missles); ///fix this <---
+    }
   }
 }
 
@@ -236,7 +248,6 @@ function createTerrain() {
 }
 
 function renderTerrain() {
-  let x = 0;
   for (let u of terrain_heights) {
     u.display();
   }
@@ -292,7 +303,7 @@ class Cannon {
     //player 2
     rectMode(CENTER);
     if (this.x > windowWidth / 2) {
-      //rotating the canon
+      //rotating the cannon
       push();
       translate(this.x, this.y);
       rotate(this.direction);
@@ -344,16 +355,30 @@ class Projectile {
     this.direction = direction;
     this.speed = speed;
     this.type = type;
+    this.positionx = 0;
+    this.positiony = 0;
   }
 
   display(){
     if(this.type === 1){ //rocket type 1
+      push();
+      translate(this.x, this.y);
+      rotate(this.direction);
 
       fill(156, 156, 156); //gray
-      rect(this.x, this.y, 10, 20);
+      rect(this.positionx, this.positiony, 10, 20);
 
       fill(173, 0, 0); //red
-      triangle(this.x-10, this.y-10, this.x, this.y-30, this.x+10, this.y-10);  
+      triangle(this.positionx-10,this.positiony-10, this.positionx, this.positiony-30, this.positionx+10, this.positiony-10);  
+      pop();
     }
+  }
+  move(){
+    this.positiony -= this.speed;
+  }
+  action(){
+    this.display();
+    this.move();
+    print(this.positiony);
   }
 }
