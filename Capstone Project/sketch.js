@@ -113,12 +113,12 @@ function draw() {
 //shooting
 function keyPressed(){
   if(keyCode === 70){ //"F" key
-    player1Projectile.push(new Projectile(player1.x, player1.y, player1.direction+90, 5, 1));
+    player1Projectile.push(new Projectile(player1.x, player1.y, player1.direction+90, 10, 1));
     print("player1 shot");
   }
   if(keyCode === 76){ //"L" key
     //                                                       the direction must have 90 added or subtracted because of the difference in starting positions.
-    player2Projectile.push(new Projectile(player2.x, player2.y, player2.direction-90, 5, 1)); //creates new projectile at the cannon position
+    player2Projectile.push(new Projectile(player2.x, player2.y, player2.direction-90, 10, 1)); //creates new projectile at the cannon position
     print("player2 shot");
   }
 }
@@ -225,7 +225,14 @@ function game_background() {
   for(let missles of player1Projectile){
     if(int(missles.positiony) < int(0-player1.y)){
       print("goodbye");
-      pop(missles); ///fix this <---
+      player1Projectile.splice(missles, 1); 
+    }
+  }
+
+  for(let missles of player2Projectile){
+    if(int(missles.positiony) < int(0-player2.y)){
+      print("goodbye");
+      player2Projectile.splice(missles, 1); 
     }
   }
 }
@@ -350,35 +357,35 @@ class Cannon {
 
 class Projectile {
   constructor(x, y, direction, speed, type) {
-    this.x = x;
-    this.y = y;
+    this.pos = createVector(x, y);
     this.direction = direction;
     this.speed = speed;
     this.type = type;
-    this.positionx = 0;
-    this.positiony = 0;
+    this.velocity = createVector(speed*cos(direction-90), speed*sin(direction-90));
+    this.gravity = createVector(0,0.1);
   }
 
   display(){
     if(this.type === 1){ //rocket type 1
       push();
-      translate(this.x, this.y);
+      translate(this.pos.x, this.pos.y);
       rotate(this.direction);
 
       fill(156, 156, 156); //gray
-      rect(this.positionx, this.positiony, 10, 20);
+      rect(0, 0, 10, 20);
 
       fill(173, 0, 0); //red
-      triangle(this.positionx-10,this.positiony-10, this.positionx, this.positiony-30, this.positionx+10, this.positiony-10);  
+      triangle(-10,0-10, 0, -30, 10, -10);  
       pop();
     }
   }
   move(){
-    this.positiony -= this.speed;
+    this.pos.add(this.velocity);
+    this.velocity.add(this.gravity);
+    rotate(this.gravity.y);
   }
   action(){
     this.display();
     this.move();
-    print(this.positiony);
   }
 }
