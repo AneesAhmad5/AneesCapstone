@@ -78,18 +78,18 @@ function draw() {
   //key pressing functions.
   //player 1
   if (keyIsDown(83) === true && player1.direction < 10) {
-    player1.direction += 5;
+    player1.direction += 1;
   }
   if (keyIsDown(87) === true && player1.direction > -190) {
-    player1.direction -= 5;
+    player1.direction -= 1;
   }
 
   //player 2
   if (keyIsDown(UP_ARROW) === true && player2.direction < 190) {
-    player2.direction += 5;
+    player2.direction += 1;
   }
   if (keyIsDown(DOWN_ARROW) === true && player2.direction > - 10) {
-    player2.direction -= 5;
+    player2.direction -= 1;
   }
 
 
@@ -223,18 +223,22 @@ function game_background() {
  
   // deleting missles if they go out of range
   for(let missles of player1Projectile){
-    if(int(missles.positiony) < int(0-player1.y)){
-      print("goodbye");
-      player1Projectile.splice(missles, 1); 
+    if(missles.pos.x < 0){
+      player1Projectile.splice(0, missles);
+    }
+    if(missles.pos.x > windowWidth){
+      player1Projectile.splice(0, missles);
+
+    }
+    if(missles.pos.y > windowHeight){
+      player1Projectile.splice(0, missles);
     }
   }
 
   for(let missles of player2Projectile){
-    if(int(missles.positiony) < int(0-player2.y)){
-      print("goodbye");
-      player2Projectile.splice(missles, 1); 
-    }
+
   }
+
 }
 
 let terrain_heights = [];
@@ -369,7 +373,8 @@ class Projectile {
     if(this.type === 1){ //rocket type 1
       push();
       translate(this.pos.x, this.pos.y);
-      rotate(this.direction);
+
+      rotate(this.velocity.heading()+90);
 
       fill(156, 156, 156); //gray
       rect(0, 0, 10, 20);
@@ -377,12 +382,13 @@ class Projectile {
       fill(173, 0, 0); //red
       triangle(-10,0-10, 0, -30, 10, -10);  
       pop();
+
     }
   }
   move(){
     this.pos.add(this.velocity);
     this.velocity.add(this.gravity);
-    rotate(this.gravity.y);
+    this.direction += this.gravity.y;
   }
   action(){
     this.display();
