@@ -105,20 +105,20 @@ function draw() {
     // print(player1.x);
     if (int(player2.cannonBase) >= int(i.top) && int(i.left) <= int(player2.x) && int(player2.x) <= int(i.right)) {
       player2.drop = false;
-    } 
+    }
   }
 
 }
 
 //shooting
-function keyPressed(){
-  if(keyCode === 70){ //"F" key
-    player1Projectile.push(new Projectile(player1.x, player1.y, player1.direction+90, 10, 1));
+function keyPressed() {
+  if (keyCode === 70) { //"F" key
+    player1Projectile.push(new Projectile(player1.x, player1.y, player1.direction + 90, 10, 1));
     print("player1 shot");
   }
-  if(keyCode === 76){ //"L" key
+  if (keyCode === 76) { //"L" key
     //                                                       the direction must have 90 added or subtracted because of the difference in starting positions.
-    player2Projectile.push(new Projectile(player2.x, player2.y, player2.direction-90, 10, 1)); //creates new projectile at the cannon position
+    player2Projectile.push(new Projectile(player2.x, player2.y, player2.direction - 90, 10, 1)); //creates new projectile at the cannon position
     print("player2 shot");
   }
 }
@@ -210,35 +210,43 @@ function game_background() {
   background(backgroundRed, backgroundGreen, backgroundBlue); //setting the background.
 
 
-  for(missles of player1Projectile){
+  for (missles of player1Projectile) {
     missles.action();
   }
 
-  for(missles of player2Projectile){
+  for (missles of player2Projectile) {
     missles.action();
   }
 
   player1.display();
   player2.display();
- 
+
   // deleting missles if they go out of range
-  for(let missles of player1Projectile){
-    if(missles.pos.x < 0){
-      player1Projectile.splice(0, missles);
+  for (let missles of player1Projectile) {
+    if (missles.pos.x < 0) { // left side
+      player1Projectile.pop(missles, 1);
     }
-    if(missles.pos.x > windowWidth){
-      player1Projectile.splice(0, missles);
-
+    if (missles.pos.x > windowWidth) {  // right side
+      player1Projectile.splice(missles, 1);
     }
-    if(missles.pos.y > windowHeight){
-      player1Projectile.splice(0, missles);
+    if (missles.pos.y > windowHeight) { //bottom of page
+      player1Projectile.splice(missles, 1);
     }
+    //missles cannot go out of bounds going upwards.
   }
 
-  for(let missles of player2Projectile){
-
+  for (let missles of player2Projectile) {
+    if (missles.pos.x < 0) { // left side
+      player2Projectile.pop(missles, 1);
+    }
+    if (missles.pos.x > windowWidth) { // right side
+      player2Projectile.splice(missles, 1);
+    }
+    if (missles.pos.y > windowHeight) { //bottom of page
+      player2Projectile.splice(missles, 1);
+    }
+    //missles cannot go out of bounds going upwards.
   }
-
 }
 
 let terrain_heights = [];
@@ -253,7 +261,7 @@ function createTerrain() {
     let h = noise(time) * height;
 
     // terrain_heights.push(int(y));
-    terrain_heights.push(new TerrainUnit(x,h));
+    terrain_heights.push(new TerrainUnit(x, h));
     time += interval;
   }
 }
@@ -265,16 +273,16 @@ function renderTerrain() {
 }
 
 class TerrainUnit {
-  constructor(x, h){
+  constructor(x, h) {
     this.x = x;
     this.y = height;
     this.h = h;
-    this.top = height-h/2;
-    this.left = this.x-terrainUnitWidth/2;
-    this.right = this.x+terrainUnitWidth/2;
+    this.top = height - h / 2;
+    this.left = this.x - terrainUnitWidth / 2;
+    this.right = this.x + terrainUnitWidth / 2;
   }
 
-  display(){
+  display() {
     noStroke();
     fill(backgroundRed * 0.5, backgroundGreen * 0.5, backgroundBlue * 0.5);
     rectMode(CENTER);
@@ -335,12 +343,12 @@ class Cannon {
     rectMode(CENTER);
     //wheels - optional
     fill(0);
-    
+
     //cannon base
     fill(122, 63, 0);
     rect(this.x, this.y + 25, 70, 20);
     //making it drop\\
-    if (this.drop === false){
+    if (this.drop === false) {
       this.forcedown_y = 0;
     }
     if (this.drop === true) {
@@ -351,8 +359,8 @@ class Cannon {
 
 
     //hitbox
-    this.cannonLeftSide = this.x-35;
-    this.cannonRightSide = this.x+35;
+    this.cannonLeftSide = this.x - 35;
+    this.cannonRightSide = this.x + 35;
     this.cannonTop = this.y - 25;
     this.cannonBase = this.y + 35;
   }
@@ -361,36 +369,49 @@ class Cannon {
 
 class Projectile {
   constructor(x, y, direction, speed, type) {
-    this.pos = createVector(x, y);
-    this.direction = direction;
+    this.pos = createVector(x, y); //creating a position vector
     this.speed = speed;
     this.type = type;
-    this.velocity = createVector(speed*cos(direction-90), speed*sin(direction-90));
-    this.gravity = createVector(0,0.1);
+    this.velocity = createVector(speed * cos(direction - 90), speed * sin(direction - 90)); //creating a velocity vector which horizantally moves the rocket by the adjacent direction to the angle of the cannon, 
+    //and then again using sine to find the vertical angle relative to the cannon angle
+    this.gravity = createVector(0, 0.1); //creating a gravity vector that only moves the rocket downwards over time.
+
+    //hitbox
+    this.ProjectileRight = 0;
+    this.ProjectileLeft = 0;
+    this.ProjectileTop = 0;
+    this.ProjectileBottom = 0;
   }
 
-  display(){
-    if(this.type === 1){ //rocket type 1
+  display() {
+    if (this.type === 1) { //rocket type 1
+
+      //creating a new grid to turn the rocket on
       push();
       translate(this.pos.x, this.pos.y);
 
-      rotate(this.velocity.heading()+90);
+      //turning the rocket image
+      rotate(this.velocity.heading() + 90);
 
+      //rocket body
       fill(156, 156, 156); //gray
       rect(0, 0, 10, 20);
 
+      //rocket head
       fill(173, 0, 0); //red
-      triangle(-10,0-10, 0, -30, 10, -10);  
+      triangle(-10, 0 - 10, 0, -30, 10, -10);
       pop();
 
+
+      //hitbox
     }
   }
-  move(){
-    this.pos.add(this.velocity);
-    this.velocity.add(this.gravity);
-    this.direction += this.gravity.y;
+  move() {
+    //physics to move the rocket
+    this.pos.add(this.velocity); //change the position of the rocket (x,y)
+    this.velocity.add(this.gravity); //adding gravity to the velocity of the rocket
   }
-  action(){
+  action() { //displaying all individual parts
     this.display();
     this.move();
   }
