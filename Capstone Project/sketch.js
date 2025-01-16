@@ -267,18 +267,18 @@ function createTerrain() {
 }
 
 function renderTerrain() {
-  for (let u of terrain_heights) {
+  for (let u of terrain_heights) { //creating the terrain units
     u.display();
   }
 }
 
-class TerrainUnit {
+class TerrainUnit { //creating a class for the terrain so that each individual part can be located and given a hitbox
   constructor(x, h) {
     this.x = x;
     this.y = height;
     this.h = h;
     this.top = height - h / 2;
-    this.left = this.x - terrainUnitWidth / 2;
+    this.left = this.x - terrainUnitWidth / 2; 
     this.right = this.x + terrainUnitWidth / 2;
   }
 
@@ -300,14 +300,15 @@ let cannonY2;
 
 
 class Cannon {
-  constructor(x, y, direction) { //need to know where each wheel is and if they're touching the ground.
+  constructor(x, y, direction) { //pretty self-explanatory variables
     this.x = x;
     this.y = y;
     this.direction = direction;
-    this.forcedown_y = 0;
-    this.drop_speed = 0.1;
-    this.drop = true;
+    this.forcedown_y = 0; //  gravity
+    this.drop_speed = 0.1; // <
+    this.drop = true; //      <
     this.touching_ground = false;
+    this.health_amount = 5;
 
     //hitbox
     this.cannonLeftSide;
@@ -332,7 +333,7 @@ class Cannon {
     //player 1
     else {
       push();
-      translate(this.x, this.y);
+      translate(this.x, this.y); //rotation
       rotate(this.direction);
       rect(25, 0, 70, 20);
       pop();
@@ -352,11 +353,17 @@ class Cannon {
       this.forcedown_y = 0;
     }
     if (this.drop === true) {
-      this.y += this.forcedown_y;
-      this.wheelY += this.forcedown_y;
-      this.forcedown_y = this.forcedown_y + this.drop_speed;
+      this.y += this.forcedown_y; //adding gravity to the Y position
+      this.forcedown_y = this.forcedown_y + this.drop_speed; //making the force generate overtime
     }
 
+    //health bar
+    fill(3, 252, 32);
+    if(this.health_amount === 1)  {circle(this.x-50, this.y-50, 20);} //1 HEALTH
+    if(this.health_amount === 2)  {circle(this.x-25, this.y-50, 20); circle(this.x-50, this.y-50, 20);} //2 HEALTH
+    if(this.health_amount === 3)  {circle(this.x, this.y-50, 20); circle(this.x-25, this.y-50, 20); circle(this.x-50, this.y-50, 20);} //3 HEALTH
+    if(this.health_amount === 4)  {circle(this.x+25, this.y-50, 20); circle(this.x, this.y-50, 20); circle(this.x-25, this.y-50, 20); circle(this.x-50, this.y-50, 20);} //4 HEALTH
+    if(this.health_amount === 5)  {circle(this.x+50, this.y-50, 20); circle(this.x+25, this.y-50, 20); circle(this.x, this.y-50, 20); circle(this.x-50, this.y-50, 20); circle(this.x-25, this.y-50, 20);}  //5 HEALTH
 
     //hitbox
     this.cannonLeftSide = this.x - 35;
@@ -404,6 +411,10 @@ class Projectile {
 
 
       //hitbox
+      this.ProjectileRight = this.pos.x + 20;
+      this.ProjectileLeft = this.pos.x - 20;
+      this.ProjectileTop = this.pos.y -20;
+      this.ProjectileBottom = this.pos.y + 20;
     }
   }
   move() {
