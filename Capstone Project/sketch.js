@@ -11,6 +11,7 @@ let transitionColour = false;
 let countdown = false;
 let game_start = false;
 let normal_mode = false;
+let game_over = false;
 
 //creating two characters
 let player1;
@@ -63,7 +64,7 @@ function draw() {
     }
   }
   else if (transitionColour === true) { //transitioning to the colour i need
-    fadeIn(200, 196, 255);
+    fadeIn(200, 196, 255);                                                                                                  ///change colour here
 
   }
   //game page
@@ -71,9 +72,15 @@ function draw() {
     game_background();
     renderTerrain();
   }
+  else if (game_over === true){
+    game_over_screen();
+  }
   else { //if nothing is received, just make a black screen. 
     background(0);
   }
+
+
+
 
   //key pressing functions.
   //player 1
@@ -224,7 +231,7 @@ function game_background() {
   // deleting missles if they go out of range
   for (let missles of player1Projectile) {
     if (missles.pos.x < 0) { // left side
-      player1Projectile.pop(missles, 1);
+      player1Projectile.splice(missles, 1);
     }
     if (missles.pos.x > windowWidth) {  // right side
       player1Projectile.splice(missles, 1);
@@ -233,11 +240,19 @@ function game_background() {
       player1Projectile.splice(missles, 1);
     }
     //missles cannot go out of bounds going upwards.
+
+    //missle Contact
+    //player1 missles
+    if(missles.ProjectileRight>=player2.cannonLeftSide && missles.ProjectileRight <= player2.cannonRightSide && missles.ProjectileBottom >= player2.cannonTop && missles.ProjectileBottom <= player2.cannonBase){
+      player1Projectile.splice(missles, 1);
+      player2.health_amount -= 1;
+
+    }
   }
 
   for (let missles of player2Projectile) {
     if (missles.pos.x < 0) { // left side
-      player2Projectile.pop(missles, 1);
+      player2Projectile.splice(missles, 1);
     }
     if (missles.pos.x > windowWidth) { // right side
       player2Projectile.splice(missles, 1);
@@ -246,7 +261,38 @@ function game_background() {
       player2Projectile.splice(missles, 1);
     }
     //missles cannot go out of bounds going upwards.
+    
+    //missle contact
+    //player2 missles
+    if(missles.ProjectileLeft<=player1.cannonRightSide && missles.ProjectileLeft >= player1.cannonLeftSide && missles.ProjectileBottom >= player1.cannonTop && missles.ProjectileBottom <= player1.cannonBase){
+      player2Projectile.splice(missles, 1);
+      player1.health_amount -= 1;
+
+    }
   }
+    
+  
+  //game OVER
+  if (player1.health_amount === 0 || player2.health_amount === 0) {
+    game_over = true;
+    game_start = false;
+  }
+  
+}
+
+function game_over_screen(){
+  background(backgroundRed, backgroundGreen, backgroundBlue);
+  fill(0);
+  textAlign(CENTER);
+  textFont(titlefont); //new font
+  textSize(200);
+  if(player2.health_amount === 0){
+    text("PLAYER 1 WINS", windowWidth / 2, windowHeight / 2);
+  }
+  else{
+    text("PLAYER 2 WINS", windowWidth / 2, windowHeight / 2);
+  }
+
 }
 
 let terrain_heights = [];
