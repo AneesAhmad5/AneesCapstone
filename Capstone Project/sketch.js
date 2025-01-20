@@ -12,11 +12,20 @@ let countdown = false;
 let game_start = false;
 let normal_mode = false;
 let game_over = false;
-
+//creating a time variable for convenience
+let timer = 0;
 //creating two characters
 let player1;
 let player2;
-
+//CANNON
+//player 1
+let cannonX;
+let cannonY;
+let elapsed_timeA, start_timeA;
+//player2
+let cannonX2;
+let cannonY2;
+let elapsed_timeB, start_timeB;
 
 //setting a colour for the background that will change.
 let backgroundRed = 100;
@@ -45,8 +54,10 @@ function setup() {
   player1 = new Cannon(cannonX, cannonY, 0);
   angleMode(DEGREES);
   player2 = new Cannon(cannonX2, cannonY2, 0);
-
+  //generating the terrain
   createTerrain();
+  //adding time to the whole program
+  let timer = millis();
 }
 
 function draw() {
@@ -72,7 +83,7 @@ function draw() {
     game_background();
     renderTerrain();
   }
-  else if (game_over === true){
+  else if (game_over === true) {
     game_over_screen();
   }
   else { //if nothing is received, just make a black screen. 
@@ -114,21 +125,44 @@ function draw() {
       player2.drop = false;
     }
   }
-
 }
 
+
+
+
+
 //shooting
-function keyPressed() {
+function keyReleased() {
   if (keyCode === 70) { //"F" key
-    player1Projectile.push(new Projectile(player1.x, player1.y, player1.direction + 90, 10, 1));
+    elapsed_timeA = millis() - start_timeA;
+    player1Projectile.push(new Projectile(player1.x, player1.y, player1.direction + 90, elapsed_timeA/50, 1));
     print("player1 shot");
   }
   if (keyCode === 76) { //"L" key
+    elapsed_timeB = millis() - start_timeB;
     //                                                       the direction must have 90 added or subtracted because of the difference in starting positions.
-    player2Projectile.push(new Projectile(player2.x, player2.y, player2.direction - 90, 10, 1)); //creates new projectile at the cannon position
+    player2Projectile.push(new Projectile(player2.x, player2.y, player2.direction - 90, elapsed_timeB/50, 1)); //creates new projectile at the cannon position
     print("player2 shot");
   }
 }
+
+
+//creating a function to set the fire gauge
+
+function fire_gauge_on() {
+  print('hello');
+}
+
+function keyPressed() {
+  if (keyIsDown(70)) {
+    fire_gauge_on();
+    start_timeA = millis();
+  }
+  if (keyIsDown(76)){
+    start_timeB = millis();
+  }
+}
+
 
 
 
@@ -243,7 +277,7 @@ function game_background() {
 
     //missle Contact
     //player1 missles
-    if(missles.ProjectileRight>=player2.cannonLeftSide && missles.ProjectileRight <= player2.cannonRightSide && missles.ProjectileBottom >= player2.cannonTop && missles.ProjectileBottom <= player2.cannonBase){
+    if (missles.ProjectileRight >= player2.cannonLeftSide && missles.ProjectileRight <= player2.cannonRightSide && missles.ProjectileBottom >= player2.cannonTop && missles.ProjectileBottom <= player2.cannonBase) {
       player1Projectile.splice(missles, 1);
       player2.health_amount -= 1;
 
@@ -261,35 +295,35 @@ function game_background() {
       player2Projectile.splice(missles, 1);
     }
     //missles cannot go out of bounds going upwards.
-    
+
     //missle contact
     //player2 missles
-    if(missles.ProjectileLeft<=player1.cannonRightSide && missles.ProjectileLeft >= player1.cannonLeftSide && missles.ProjectileBottom >= player1.cannonTop && missles.ProjectileBottom <= player1.cannonBase){
+    if (missles.ProjectileLeft <= player1.cannonRightSide && missles.ProjectileLeft >= player1.cannonLeftSide && missles.ProjectileBottom >= player1.cannonTop && missles.ProjectileBottom <= player1.cannonBase) {
       player2Projectile.splice(missles, 1);
       player1.health_amount -= 1;
 
     }
   }
-    
-  
+
+
   //game OVER
   if (player1.health_amount === 0 || player2.health_amount === 0) {
     game_over = true;
     game_start = false;
   }
-  
+
 }
 
-function game_over_screen(){
+function game_over_screen() {
   background(backgroundRed, backgroundGreen, backgroundBlue);
   fill(0);
   textAlign(CENTER);
   textFont(titlefont); //new font
   textSize(200);
-  if(player2.health_amount === 0){
+  if (player2.health_amount === 0) {
     text("PLAYER 1 WINS", windowWidth / 2, windowHeight / 2);
   }
-  else{
+  else {
     text("PLAYER 2 WINS", windowWidth / 2, windowHeight / 2);
   }
 
@@ -324,7 +358,7 @@ class TerrainUnit { //creating a class for the terrain so that each individual p
     this.y = height;
     this.h = h;
     this.top = height - h / 2;
-    this.left = this.x - terrainUnitWidth / 2; 
+    this.left = this.x - terrainUnitWidth / 2;
     this.right = this.x + terrainUnitWidth / 2;
   }
 
@@ -335,14 +369,6 @@ class TerrainUnit { //creating a class for the terrain so that each individual p
     rect(this.x, this.y, terrainUnitWidth, this.h);
   }
 }
-
-//CANNON
-//player 1
-let cannonX;
-let cannonY;
-//player2
-let cannonX2;
-let cannonY2;
 
 
 class Cannon {
@@ -405,11 +431,11 @@ class Cannon {
 
     //health bar
     fill(3, 252, 32);
-    if(this.health_amount === 1)  {circle(this.x-50, this.y-50, 20);} //1 HEALTH
-    if(this.health_amount === 2)  {circle(this.x-25, this.y-50, 20); circle(this.x-50, this.y-50, 20);} //2 HEALTH
-    if(this.health_amount === 3)  {circle(this.x, this.y-50, 20); circle(this.x-25, this.y-50, 20); circle(this.x-50, this.y-50, 20);} //3 HEALTH
-    if(this.health_amount === 4)  {circle(this.x+25, this.y-50, 20); circle(this.x, this.y-50, 20); circle(this.x-25, this.y-50, 20); circle(this.x-50, this.y-50, 20);} //4 HEALTH
-    if(this.health_amount === 5)  {circle(this.x+50, this.y-50, 20); circle(this.x+25, this.y-50, 20); circle(this.x, this.y-50, 20); circle(this.x-50, this.y-50, 20); circle(this.x-25, this.y-50, 20);}  //5 HEALTH
+    if (this.health_amount === 1) { circle(this.x - 50, this.y - 50, 20); } //1 HEALTH
+    if (this.health_amount === 2) { circle(this.x - 25, this.y - 50, 20); circle(this.x - 50, this.y - 50, 20); } //2 HEALTH
+    if (this.health_amount === 3) { circle(this.x, this.y - 50, 20); circle(this.x - 25, this.y - 50, 20); circle(this.x - 50, this.y - 50, 20); } //3 HEALTH
+    if (this.health_amount === 4) { circle(this.x + 25, this.y - 50, 20); circle(this.x, this.y - 50, 20); circle(this.x - 25, this.y - 50, 20); circle(this.x - 50, this.y - 50, 20); } //4 HEALTH
+    if (this.health_amount === 5) { circle(this.x + 50, this.y - 50, 20); circle(this.x + 25, this.y - 50, 20); circle(this.x, this.y - 50, 20); circle(this.x - 50, this.y - 50, 20); circle(this.x - 25, this.y - 50, 20); }  //5 HEALTH
 
     //hitbox
     this.cannonLeftSide = this.x - 35;
@@ -422,13 +448,16 @@ class Cannon {
 
 class Projectile {
   constructor(x, y, direction, speed, type) {
-    this.pos = createVector(x, y); //creating a position vector
-    this.speed = speed;
+    this.pos = createVector(x, y); //creating a position vector 
     this.type = type;
     this.velocity = createVector(speed * cos(direction - 90), speed * sin(direction - 90)); //creating a velocity vector which horizantally moves the rocket by the adjacent direction to the angle of the cannon, 
     //and then again using sine to find the vertical angle relative to the cannon angle
     this.gravity = createVector(0, 0.1); //creating a gravity vector that only moves the rocket downwards over time.
 
+    //creating colours for the fire gauge
+    this.fire_gauge_red = 255;
+    this.fire_gauge_green = 0;
+    this.fire_gauge_blue = 0;
     //hitbox
     this.ProjectileRight = 0;
     this.ProjectileLeft = 0;
@@ -459,8 +488,18 @@ class Projectile {
       //hitbox
       this.ProjectileRight = this.pos.x + 20;
       this.ProjectileLeft = this.pos.x - 20;
-      this.ProjectileTop = this.pos.y -20;
+      this.ProjectileTop = this.pos.y - 20;
       this.ProjectileBottom = this.pos.y + 20;
+    }
+    //fire gauge
+    fill(this.fire_gauge_red, this.fire_gauge_green, this.fire_gauge_blue);
+    rect(windowWidth / 2, windowHeight / 2, 40, 40);
+    //changing gauge colours
+    if (this.fire_gauge_red === 255) {
+      this.fire_gauge_green++;
+    }
+    if (this.fire_gauge_green === 255) {
+      this.fire_gauge_red--;
     }
   }
   move() {
