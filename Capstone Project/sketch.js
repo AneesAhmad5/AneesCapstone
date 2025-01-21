@@ -12,8 +12,7 @@ let countdown = false;
 let game_start = false;
 let normal_mode = false;
 let game_over = false;
-//creating a time variable for convenience
-let timer = 0;
+
 //creating two characters
 let player1;
 let player2;
@@ -21,11 +20,17 @@ let player2;
 //player 1
 let cannonX;
 let cannonY;
-let elapsed_timeA, start_timeA;
+let elapsed_timeA = 0, start_timeA = 0;
 //player2
 let cannonX2;
 let cannonY2;
-let elapsed_timeB, start_timeB;
+let elapsed_timeB = 0, start_timeB = 0;
+
+//setting a variable to see the rocket's speed change rate
+let change_rate = 0;
+
+//setting a variable to change missle types
+let missle_type = 1;
 
 //setting a colour for the background that will change.
 let backgroundRed = 100;
@@ -37,6 +42,9 @@ let BlackScreen = false;
 player1Projectile = [];
 player2Projectile = [];
 
+//setting an array to carry explosions
+explosions = [];
+
 // WEBSITE FUNCTIONS
 
 function preload() {
@@ -46,18 +54,25 @@ function preload() {
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
+  //degrees for rotating cannon and projectiles
+  angleMode(DEGREES);
+
   //setting cannon positions. Must be done before creating new cannons and has to be within a system. 
   cannonX = windowWidth * 0.25;
   cannonX2 = windowWidth * 0.75;
   cannonY = 0;        // int(windowHeight * 0.4);
   cannonY2 = 0;       //int(windowHeight * 0.4);
+
+  //adding the cannon variables and their power meters
   player1 = new Cannon(cannonX, cannonY, 0);
-  angleMode(DEGREES);
+  power_gauge1 = new PowerMeter(0, windowHeight / 2, 5);
+
   player2 = new Cannon(cannonX2, cannonY2, 0);
+  power_gauge2 = new PowerMeter(windowWidth, windowHeight / 2, 5);
+
   //generating the terrain
   createTerrain();
-  //adding time to the whole program
-  let timer = millis();
+
 }
 
 function draw() {
@@ -95,36 +110,51 @@ function draw() {
 
   //key pressing functions.
   //player 1
-  if (keyIsDown(83) === true && player1.direction < 10) {
-    player1.direction += 1;
-  }
-  if (keyIsDown(87) === true && player1.direction > -190) {
+  if (keyIsDown(83) === true && player1.direction > -10) {
     player1.direction -= 1;
+  }
+  if (keyIsDown(87) === true && player1.direction < 190) {
+    player1.direction += 1;
   }
 
   //player 2
-  if (keyIsDown(UP_ARROW) === true && player2.direction < 190) {
-    player2.direction += 1;
-  }
-  if (keyIsDown(DOWN_ARROW) === true && player2.direction > - 10) {
+  if (keyIsDown(UP_ARROW) === true && player2.direction > -190) {
     player2.direction -= 1;
   }
+  if (keyIsDown(DOWN_ARROW) === true && player2.direction < 10) {
+    player2.direction += 1;
+  }
 
 
 
 
-  //physics
+  //physics for cannon
   //checking to see if the cannon touches the ground
   for (let i of terrain_heights) {
     if (int(player1.cannonBase) >= int(i.top) && int(i.left) <= int(player1.x) && int(player1.x) <= int(i.right)) {
       player1.drop = false;
     }
-    // print(i.left, i.right);
-    // print(player1.x);
     if (int(player2.cannonBase) >= int(i.top) && int(i.left) <= int(player2.x) && int(player2.x) <= int(i.right)) {
       player2.drop = false;
     }
   }
+
+  if (start_timeA > 0 && game_start === true) { //displaying the gauges once the timer begins
+    power_gauge1.display();
+  }
+  if (start_timeB > 0 && game_start === true) {
+    power_gauge2.display();
+  }
+  //resetting meter colours
+  if (start_timeA === 0) {
+    power_gauge1.empty_gauge();
+    power_gauge1.rate = 1
+  }
+  if (start_timeB === 0) {
+    power_gauge2.empty_gauge();
+    power_gauge2.rate = 1;
+  }
+  print(missle_type);
 }
 
 
@@ -135,30 +165,26 @@ function draw() {
 function keyReleased() {
   if (keyCode === 70) { //"F" key
     elapsed_timeA = millis() - start_timeA;
-    player1Projectile.push(new Projectile(player1.x, player1.y, player1.direction + 90, elapsed_timeA/50, 1));
-    print("player1 shot");
+    player1Projectile.push(new Projectile(player1.x, player1.y, player1.direction + 90, elapsed_timeA / 100 + 2, missle_type));
+    start_timeA = 0;
   }
   if (keyCode === 76) { //"L" key
     elapsed_timeB = millis() - start_timeB;
     //                                                       the direction must have 90 added or subtracted because of the difference in starting positions.
-    player2Projectile.push(new Projectile(player2.x, player2.y, player2.direction - 90, elapsed_timeB/50, 1)); //creates new projectile at the cannon position
-    print("player2 shot");
+    player2Projectile.push(new Projectile(player2.x, player2.y, player2.direction - 90, elapsed_timeB / 100 + 2, missle_type)); //creates new projectile at the cannon position
+    start_timeB = 0;
   }
 }
 
 
 //creating a function to set the fire gauge
 
-function fire_gauge_on() {
-  print('hello');
-}
 
 function keyPressed() {
   if (keyIsDown(70)) {
-    fire_gauge_on();
     start_timeA = millis();
   }
-  if (keyIsDown(76)){
+  if (keyIsDown(76)) {
     start_timeB = millis();
   }
 }
@@ -178,6 +204,8 @@ function menu() {
   text("Cannon Game", windowWidth / 2, windowHeight / 2 - 100);
   //adding a play button as a separate function to clean this up
   play_button();
+  controls();
+  versions();
 }
 
 let playcolour = (69, 140, 81); //play text colour
@@ -200,12 +228,62 @@ function play_button() {
   }
 }
 
+//adding a function to include player controls 
+function controls() {
+  fill(0);
+  textSize(20);
+  //player 1
+  text("Player 1:", windowWidth * 0.125, windowHeight / 2 + 100)
+  text("W + S to move cannon", windowWidth * 0.125, windowHeight / 2 + 160)
+  text("F to shoot", windowWidth * 0.125, windowHeight / 2 + 220)
+
+  //player 2
+  text("Player 2:", windowWidth * 0.875, windowHeight / 2 + 100)
+  text("UP + DOWN ARROW to move cannon", windowWidth * 0.875, windowHeight / 2 + 160)
+  text("L to shoot", windowWidth * 0.875, windowHeight / 2 + 220)
+}
+
+//adding a tab to select projectile types
+
+function versions() {
+  rectMode(CENTER);
+  fill(buttonColour);
+  rect(windowWidth / 2, windowHeight * 0.1 - 10, 200, 40);
+  textAlign(CENTER);
+  fill(playcolour);
+  textSize(30);
+  //switching text to display missle type
+  if (missle_type === 1) {
+    text("VERSION 1", windowWidth / 2, windowHeight * 0.1);
+  }
+  else if (missle_type === 2) {
+    text("VERSION 2", windowWidth / 2, windowHeight * 0.1);
+  }
+  //hover changes colour
+  // if (menu_screen === true && mouseY < windowHeight * 0.1 - 5 && mouseY < windowHeight * 0.1 + 5 && mouseX > windowWidth - 100 && mouseX < windowWidth + 100) {
+  //   buttonColour = color(0); //second colours
+  //   playcolour = color(36, 74, 43);
+  // }
+  // else {
+  //   buttonColour = color(40, 65, 158); // base colours
+  //   playcolour = color(69, 140, 81);
+  // }
+}
+
 //all the mouse clicking functions will be here.
 function mouseClicked() {
   if (menu_screen === true && mouseY < windowHeight / 2 + 350 && mouseY > windowHeight / 2 + 50 && mouseX > windowWidth / 2 - 400 && mouseX < windowWidth / 2 + 400) {//if mouse is hovering over the play button
     menu_screen = false;
     transitionBlack = true;
     game_start = true;
+  }
+  else if (menu_screen === true && mouseY > windowHeight * 0.1 - 5 && mouseY < windowHeight * 0.1 + 5 && mouseX > windowWidth / 2 - 100 && mouseX < windowWidth / 2 + 100) {
+
+    missle_type++;
+  }
+  //versions cant cycle out of range
+  if (missle_type > 2) {
+    missle_type = 1;
   }
 }
 
@@ -280,7 +358,7 @@ function game_background() {
     if (missles.ProjectileRight >= player2.cannonLeftSide && missles.ProjectileRight <= player2.cannonRightSide && missles.ProjectileBottom >= player2.cannonTop && missles.ProjectileBottom <= player2.cannonBase) {
       player1Projectile.splice(missles, 1);
       player2.health_amount -= 1;
-
+      explosions.push(new Explosion(missles.pos.x, missles.pos.y)) //creates an explosion
     }
   }
 
@@ -295,13 +373,21 @@ function game_background() {
       player2Projectile.splice(missles, 1);
     }
     //missles cannot go out of bounds going upwards.
-
     //missle contact
     //player2 missles
     if (missles.ProjectileLeft <= player1.cannonRightSide && missles.ProjectileLeft >= player1.cannonLeftSide && missles.ProjectileBottom >= player1.cannonTop && missles.ProjectileBottom <= player1.cannonBase) {
       player2Projectile.splice(missles, 1);
       player1.health_amount -= 1;
+      explosions.push(new Explosion(missles.pos.x, missles.pos.y)) //creates an explosion
+    }
+  }
 
+  //adding the explosion rendering
+  for (let i of explosions) {
+    i.display();
+    print('boom');
+    if (i.opacity < 0) {
+      explosions.splice(i, 1);
     }
   }
 
@@ -371,6 +457,8 @@ class TerrainUnit { //creating a class for the terrain so that each individual p
 }
 
 
+// CANNON
+
 class Cannon {
   constructor(x, y, direction) { //pretty self-explanatory variables
     this.x = x;
@@ -399,7 +487,7 @@ class Cannon {
       push();
       translate(this.x, this.y);
       rotate(this.direction);
-      rect(-25, 0, 70, 20);
+      rect(25, 0, 70, 20);
       pop();
     }
     //player 1
@@ -407,7 +495,7 @@ class Cannon {
       push();
       translate(this.x, this.y); //rotation
       rotate(this.direction);
-      rect(25, 0, 70, 20);
+      rect(-25, 0, 70, 20);
       pop();
     }
     fill(31, 26, 26);
@@ -446,18 +534,19 @@ class Cannon {
 
 }
 
+
+
+// PROJECTILE TYPES
+
+
 class Projectile {
   constructor(x, y, direction, speed, type) {
     this.pos = createVector(x, y); //creating a position vector 
     this.type = type;
-    this.velocity = createVector(speed * cos(direction - 90), speed * sin(direction - 90)); //creating a velocity vector which horizantally moves the rocket by the adjacent direction to the angle of the cannon, 
+    this.velocity = createVector(speed * cos(direction + 90), speed * sin(direction + 90)); //creating a velocity vector which horizantally moves the rocket by the adjacent direction to the angle of the cannon, 
     //and then again using sine to find the vertical angle relative to the cannon angle
     this.gravity = createVector(0, 0.1); //creating a gravity vector that only moves the rocket downwards over time.
 
-    //creating colours for the fire gauge
-    this.fire_gauge_red = 255;
-    this.fire_gauge_green = 0;
-    this.fire_gauge_blue = 0;
     //hitbox
     this.ProjectileRight = 0;
     this.ProjectileLeft = 0;
@@ -491,16 +580,20 @@ class Projectile {
       this.ProjectileTop = this.pos.y - 20;
       this.ProjectileBottom = this.pos.y + 20;
     }
-    //fire gauge
-    fill(this.fire_gauge_red, this.fire_gauge_green, this.fire_gauge_blue);
-    rect(windowWidth / 2, windowHeight / 2, 40, 40);
-    //changing gauge colours
-    if (this.fire_gauge_red === 255) {
-      this.fire_gauge_green++;
-    }
-    if (this.fire_gauge_green === 255) {
-      this.fire_gauge_red--;
-    }
+    //rocket type 2 (WIP)
+//     if (this.type === 2) { //fireball
+//       // creating a new grid to turn the rocket on
+//       push();
+//       translate(this.pos.x, this.pos.y);
+// // 
+//       // turning the rocket image
+//       rotate(this.velocity.heading() + 90);
+// // 
+//       // fireball
+//       fill(252, 143, 0); //orange-yellow
+//       circle(0, 0, 20);
+//       pop();
+//     }
   }
   move() {
     //physics to move the rocket
@@ -510,5 +603,60 @@ class Projectile {
   action() { //displaying all individual parts
     this.display();
     this.move();
+  }
+}
+
+//  POWER METER
+class PowerMeter { //--adding a rate to know how fast the meter moves up. Depends on time variable
+  constructor(x, y, rate) {
+    this.x = x;
+    this.y = y;
+    this.rate = rate;
+    //creating colours for the fire gauge
+    this.fire_gauge_red = 255;
+    this.fire_gauge_green = 0;
+    this.fire_gauge_blue = 0;
+  }
+  display() {
+    //fire gauge
+    fill(this.fire_gauge_red, this.fire_gauge_green, this.fire_gauge_blue);
+    rect(this.x, this.y, 30, this.rate);
+
+    //changing gauge colours
+    if (this.fire_gauge_red >= 255) {
+      this.fire_gauge_green += 10;
+    }
+    if (this.fire_gauge_green >= 255) {
+      this.fire_gauge_red -= 10;
+    }
+    if (this.fire_gauge_red <= 0) {
+      this.fire_gauge_blue += 10;
+    }
+    if (this.fire_gauge_blue >= 255) {
+      this.fire_gauge_green -= 10;
+    }
+
+
+    this.rate += 2;
+  }
+  empty_gauge() {
+    this.fire_gauge_red = 255;
+    this.fire_gauge_green = 0;
+    this.fire_gauge_blue = 0;
+  }
+
+}
+
+//eXPLOSION
+class Explosion {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.opacity = 200
+  }
+  display() {
+    fill(252, 84, 0, this.opacity);
+    circle(this.x, this.y, 100);
+    this.opacity -= 5;
   }
 }
